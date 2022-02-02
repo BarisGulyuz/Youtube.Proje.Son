@@ -1,0 +1,180 @@
+﻿@model IEnumerable<Category>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_Layout";
+}
+
+
+<div id="modals">
+
+</div>
+<div class="card">
+    <div class="card-header">
+        <h5 class="text-center"> <i class="fas fa-book"></i> Categories</h5>
+    </div>
+    <div class="card-header">
+        <button id="new-category" class="btn btn-primary"><i class="fas fa-plus"></i>  Add New Category</button>
+        <button id="delete-category" class="btn btn-danger"><i class="fas fa-trash"></i>  Delete/ Delete All</button>
+    </div>
+    <div class="card-body">
+        <table id="category-table" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Choose</th>
+                    <th>#</th>
+                    <th>Category Name</th>
+                    <th>Number of Products</th>
+                    <th>Operations</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var category in Model)
+                {
+                    <tr name="@category.Id">
+                        <td><input type="checkbox" class="selected" name="selected" value="@category.Id" /></td>
+                        <td>@category.Id</td>
+                        <td>@category.CategoryName</td>
+                        <td><span class="badge bg-success"> @category.Products.Count() </span></td>
+                        <td><button onclick="showProducts('@Url.Action("ProdcutsByCategoryId","Product",new {id=category.Id},Context.Request.Scheme)')" class="btn btn-warning btn-sm show-products"> <span class="fa fa-eye"></span></button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            const dataTable = $('#category-table').DataTable({
+                //language: {
+                //    url: "https://cdn.datatables.net/plug-ins/1.10.20/i18n/Turkish.json"
+                //}
+            })
+
+
+            //#region JQUERY ADD SECTINON START HERE
+            const modals = $('#modals')
+            $(document).on('click', '#new-category', function (event) {
+                event.preventDefault()
+                $.ajax({
+                    type: 'GET',
+                    url: '/Category/Add/',
+                    success: function (view) {
+                        $('#modals').html(view)
+                        $('#form-modal').modal('show')
+                    }
+                })
+            })
+
+
+
+            modals.on('click', '#btnSavee', function (event) {
+                event.preventDefault()
+                const form = $('#category-add-form')
+                const categoryData = form.serialize()
+                $.post('/Category/Add/', categoryData).done(function (data) {
+                    const addedData = JSON.parse(data)
+                    console.log(addedData)
+                    const newBody = $('.modal body', addedData.CategoryPartial)
+                    $('.modal body').replaceWith(newBody)
+                    if (addedData.IsValid === true) {
+
+                        dataTable.row.add([
+                            `<td><input type="checkbox" class="selected" name="selected" value="${addedData.Category.Id}"/></td>`,
+                            addedData.Category.Id,
+                            addedData.Category.CategoryName,
+                            `<span class="badge bg-success"> 0 </span>`,
+                                `<button class="btn btn-warning btn-sm show-products"> <span class="fa fa-eye"></span> </button>`
+                        ]).draw()
+                        $('#form-modal').modal('hide')
+
+                    }
+
+                    else {
+                        alert(addedData.Errors[0].ErrorMessage)
+                    }
+
+                }).fail(function (response) {
+
+                    console.log(response)
+                })
+
+            })
+            //#endregion JQUERY ADD SECTINON END HERE
+
+
+
+
+
+
+            //#region GETPRODUCTS
+
+            showProducts = (url) => {
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    success: function (view) {
+                        $('#modals').html(view);
+                        $('#form-modal').modal('show');
+                    }
+                })
+            }
+
+            //#endregion
+
+            //#region JQUERY DELETE START HERE
+
+            $('#delete-category').hide()
+            $('.selected').change(function () {
+                let sayac = 0
+                $("input[name='selected']:checked").each(function () {
+                    sayac++
+                })
+                if (sayac > 0) {
+                    $('#delete-category').fadeIn(1000)
+                }
+                else {
+                    $('#delete-category').fadeOut(1000)
+                }
+            })
+
+            $(document).on('click', '#delete-category', function () {
+
+                Swal.fire({
+                    title: 'Wanna Delete This Category?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Delete.',
+                    cancelButtonText: 'No'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let data = []
+                        let sayac = 0
+                        $("input[name='selected']:checked").each(function () {
+                            data[sayac] = $(this).val()
+                            sayac++
+                        })
+
+                        $.ajax({
+                            url: '/Category/MultipleDelete/',
+                            type: 'POST',
+                            dataType: 'json',
+                            data: { "id": data },
+                            success: function () {
+                                window.location.reload()
+                            }
+                        })
+                    }
+                })
+            })
+
+            //#endregion JQUERY DELETE END HERE
+        })
+    </script>
+}
+

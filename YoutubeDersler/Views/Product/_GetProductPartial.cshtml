@@ -1,0 +1,40 @@
+﻿@model Product
+<div class="modal" tabindex="-1" role="dialog" id="form-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h5 class="modal-title"> <i class="fas fa-arrow-right"></i> @Model.Name <span class="badge bg-warning">@Model.Category.CategoryName</span></h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group text-center">
+                                    <img src="~/images/@Model.Picture" width="200" height="200" style="border-radius:50%" />
+                                </div>
+                                <div class="form-group col-12">
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><strong>Price</strong></span>
+                                        <input disabled type="number" class="form-control" asp-for="Price">
+                                    </div>
+                                </div>
+                                <div class="form-group col-12">
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><strong>Stock</strong></span>
+                                        <input disabled type="text" class="form-control" asp-for="Stock">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
